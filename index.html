@@ -3,25 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PoleSentinel — SL-001</title>
+<title>PoleSentinel — Fleet</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ink:#0d1117;
-  --slab:#141b24;
-  --slab-2:#1b242f;
-  --rule:#2a3542;
-  --rule-soft:#212b36;
-  --fg:#e8edf2;
-  --fg-dim:#8a99a8;
-  --fg-faint:#5d6b7a;
-  --sodium:#ffb340;
-  --ok:#3fb27f;
-  --warn:#e8a33d;
-  --crit:#e5484d;
-  --stale:#7c6ce0;
+  --ink:#0d1117; --slab:#141b24; --slab-2:#1b242f;
+  --rule:#2a3542; --rule-soft:#212b36;
+  --fg:#e8edf2; --fg-dim:#8a99a8; --fg-faint:#5d6b7a;
+  --sodium:#ffb340; --ok:#3fb27f; --warn:#e8a33d; --crit:#e5484d; --stale:#7c6ce0;
   --mono:'IBM Plex Mono',ui-monospace,monospace;
   --sans:'IBM Plex Sans',system-ui,sans-serif;
   --cond:'Barlow Condensed',var(--sans);
@@ -29,574 +20,620 @@
 :root:not([data-theme="light"]){color-scheme:dark}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--ink);color:var(--fg);font-family:var(--sans)}
-body{
-  min-height:100vh;
-  font-size:14px;
-  line-height:1.45;
-  background:
-    linear-gradient(180deg,#10171f 0%,var(--ink) 340px),
-    var(--ink);
-}
+body{min-height:100vh;font-size:14px;line-height:1.45}
 .wrap{max-width:1360px;margin:0 auto;padding:18px 20px 40px}
 
-/* ---------- masthead ---------- */
 .masthead{
   display:flex;align-items:flex-end;justify-content:space-between;
-  gap:20px;flex-wrap:wrap;
-  padding-bottom:14px;margin-bottom:18px;
+  gap:20px;flex-wrap:wrap;padding-bottom:14px;margin-bottom:18px;
   border-bottom:2px solid var(--rule);
 }
-.ident{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap}
-.mark{
-  font-family:var(--cond);font-weight:700;font-size:30px;
-  letter-spacing:.02em;line-height:1;
-}
-.mark b{color:var(--sodium);font-weight:700}
-.asset{
-  font-family:var(--mono);font-size:12px;color:var(--fg-dim);
-  border-left:1px solid var(--rule);padding-left:14px;
-  display:flex;align-items:center;gap:10px;
-}
-.asset em{font-style:normal;color:var(--fg)}
-.sync-btn{
-  background:transparent;color:var(--sodium);border:1px solid var(--sodium);
-  border-radius:3px;padding:2px 6px;cursor:pointer;font-family:var(--mono);
-  font-size:10px;transition:background 0.2s,color 0.2s;
-}
-.sync-btn:hover{background:var(--sodium);color:var(--ink)}
-
-.link-state{
-  display:flex;align-items:center;gap:9px;
+.mark{font-family:var(--cond);font-weight:700;font-size:30px;letter-spacing:.02em;line-height:1}
+.mark b{color:var(--sodium)}
+.mark span{font-family:var(--mono);font-size:13px;color:var(--fg-dim);font-weight:400;margin-left:10px;letter-spacing:0}
+.fleet-stats{display:flex;gap:10px;flex-wrap:wrap}
+.stat{
   font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
-  padding:7px 13px;border:1px solid var(--rule);border-radius:2px;
-  background:var(--slab);
+  padding:7px 13px;border:1px solid var(--rule);border-radius:2px;background:var(--slab);
+  display:flex;align-items:center;gap:7px;color:var(--fg-dim);
 }
-.beacon{width:7px;height:7px;border-radius:50%;background:var(--fg-faint);flex:none}
-.link-state.live .beacon{background:var(--ok);animation:beat 2s ease-in-out infinite}
-.link-state.live{border-color:rgba(63,178,127,.4);color:var(--ok)}
-.link-state.lost .beacon{background:var(--stale)}
-.link-state.lost{border-color:rgba(124,108,224,.5);color:var(--stale)}
-@keyframes beat{0%,100%{opacity:1}50%{opacity:.35}}
-@media (prefers-reduced-motion:reduce){.link-state.live .beacon{animation:none}}
+.stat i{width:7px;height:7px;border-radius:50%;background:var(--fg-faint);flex:none}
+.stat.crit i{background:var(--crit)} .stat.crit{color:#ff8b8f;border-color:rgba(229,72,77,.4)}
+.stat.warn i{background:var(--warn)} .stat.warn{color:var(--warn);border-color:rgba(232,163,61,.4)}
+.stat.ok i{background:var(--ok)} .stat.ok{color:var(--ok);border-color:rgba(63,178,127,.35)}
 
-/* ---------- verdict bar ---------- */
+.toolbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;gap:12px;flex-wrap:wrap}
+.toolbar-l{font-family:var(--mono);font-size:11.5px;color:var(--fg-faint)}
+.toolbar-r{font-family:var(--mono);font-size:11px;color:var(--fg-faint)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.card{
+  background:linear-gradient(165deg,var(--slab) 0%,var(--slab-2) 130%);
+  border:1px solid var(--rule);border-left:4px solid var(--rule);
+  border-radius:5px;padding:0;cursor:pointer;text-align:left;
+  display:flex;flex-direction:column;color:inherit;font:inherit;width:100%;
+  transition:border-color .25s,transform .18s,box-shadow .25s;
+  position:relative;overflow:hidden;
+}
+.card:hover{transform:translateY(-3px);box-shadow:0 10px 26px rgba(0,0,0,.35)}
+.card-inner{padding:16px;display:flex;flex-direction:column;gap:12px;position:relative;z-index:1}
+.ring-wrap{position:relative;width:52px;height:52px;flex:none}
+.ring-wrap svg{transform:rotate(-90deg)}
+.ring-bg{fill:none;stroke:var(--rule-soft);stroke-width:5}
+.ring-fg{fill:none;stroke-width:5;stroke-linecap:round;transition:stroke-dashoffset .6s cubic-bezier(.2,.7,.3,1),stroke .3s}
+.ring-num{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  font-family:var(--cond);font-weight:700;font-size:15px}
+.card.sev-ok{border-left-color:var(--ok)}
+.card.sev-warn{border-left-color:var(--warn);box-shadow:0 0 0 1px rgba(232,163,61,.15)}
+.card.sev-crit{border-left-color:var(--crit);box-shadow:0 0 22px rgba(229,72,77,.18)}
+.card.sev-offline{border-left-color:var(--stale)}
+.card.sev-warn::before,.card.sev-crit::before{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  animation:cardpulse 1.6s ease-in-out infinite;
+}
+.card.sev-warn::before{box-shadow:inset 0 0 0 1px rgba(232,163,61,.5)}
+.card.sev-crit::before{box-shadow:inset 0 0 0 1px rgba(229,72,77,.6)}
+@keyframes cardpulse{0%,100%{opacity:.35}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.card.sev-warn::before,.card.sev-crit::before{animation:none;opacity:.6}}
+
+.card-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.card-id{font-family:var(--cond);font-weight:700;font-size:22px;letter-spacing:.01em;display:flex;align-items:center;gap:8px}
+.livedot{width:6px;height:6px;border-radius:50%;background:var(--ok);flex:none}
+.livedot.dead{background:var(--stale);animation:none}
+.livedot{animation:beat2 2s ease-in-out infinite}
+@keyframes beat2{0%,100%{opacity:1}50%{opacity:.3}}
+.card-loc{font-family:var(--mono);font-size:10.5px;color:var(--fg-faint);margin-top:3px;display:flex;align-items:center;gap:5px}
+.card-loc a{color:var(--fg-faint);text-decoration:none;border-bottom:1px dotted var(--fg-faint)}
+.card-loc a:hover{color:var(--sodium);border-color:var(--sodium)}
+.card-badge{
+  font-family:var(--mono);font-size:10px;letter-spacing:.06em;font-weight:600;
+  padding:4px 9px;border-radius:2px;white-space:nowrap;
+}
+.sev-ok .card-badge{background:rgba(63,178,127,.14);color:var(--ok);border:1px solid rgba(63,178,127,.4)}
+.sev-warn .card-badge{background:rgba(232,163,61,.15);color:var(--warn);border:1px solid rgba(232,163,61,.5)}
+.sev-crit .card-badge{background:rgba(229,72,77,.16);color:#ff8b8f;border:1px solid rgba(229,72,77,.55)}
+.sev-offline .card-badge{background:rgba(124,108,224,.15);color:var(--stale);border:1px solid rgba(124,108,224,.5)}
+
+.card-mini{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--rule-soft);border-radius:3px;overflow:hidden}
+.mini{background:rgba(0,0,0,.25);padding:9px 11px}
+.mini-l{font-family:var(--mono);font-size:9px;color:var(--fg-faint);letter-spacing:.05em}
+.mini-v{font-family:var(--cond);font-weight:700;font-size:20px;margin-top:2px}
+.card-spark{height:34px;width:100%;display:block;margin-top:2px}
+.card-glow{position:absolute;inset:-40% -20% auto auto;width:220px;height:220px;border-radius:50%;
+  filter:blur(50px);opacity:.14;pointer-events:none;z-index:0}
+.sev-crit .card-glow{background:var(--crit)}
+.sev-warn .card-glow{background:var(--warn)}
+.sev-ok .card-glow{background:var(--ok)}
+.sev-offline .card-glow{background:var(--stale)}
+
+.card-flags{display:flex;gap:6px;flex-wrap:wrap;min-height:22px}
+.flagchip{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.03em;
+  padding:3px 7px;border-radius:2px;border:1px solid var(--rule);color:var(--fg-faint);
+}
+.flagchip.on-crit{border-color:rgba(229,72,77,.5);color:#ff8b8f;background:rgba(229,72,77,.1)}
+.flagchip.on-warn{border-color:rgba(232,163,61,.5);color:var(--warn);background:rgba(232,163,61,.1)}
+
+.card-foot{display:flex;justify-content:space-between;align-items:center;font-family:var(--mono);font-size:10.5px;color:var(--fg-faint)}
+
+.empty{
+  grid-column:1/-1;text-align:center;padding:60px 20px;color:var(--fg-faint);
+  font-family:var(--mono);font-size:13px;border:1px dashed var(--rule);border-radius:3px;
+}
+
+.overlay{
+  position:fixed;inset:0;background:rgba(5,8,12,.78);backdrop-filter:blur(4px);
+  display:none;align-items:flex-start;justify-content:center;
+  padding:2.5vh 16px 40px;z-index:50;overflow-y:auto;
+}
+.overlay.open{display:flex}
+.modal{
+  width:100%;max-width:1180px;min-height:95vh;background:var(--ink);border:1px solid var(--rule);
+  border-radius:6px;overflow:hidden;
+  animation:modalin .2s cubic-bezier(.2,.7,.3,1);
+  display:flex;flex-direction:column;
+}
+@keyframes modalin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.modal{animation:none}}
+.modal-hd{
+  display:flex;justify-content:space-between;align-items:center;gap:12px;
+  padding:16px 20px;border-bottom:2px solid var(--rule);background:var(--slab);
+}
+.modal-hd h2{font-family:var(--cond);font-weight:700;font-size:24px}
+.modal-hd .sub{font-family:var(--mono);font-size:11px;color:var(--fg-faint);margin-top:2px}
+.x{
+  background:transparent;border:1px solid var(--rule);color:var(--fg-dim);
+  width:32px;height:32px;border-radius:2px;cursor:pointer;font-size:16px;line-height:1;flex:none;
+}
+.x:hover,.x:focus-visible{border-color:var(--sodium);color:var(--sodium)}
+.modal-body{padding:18px 20px;display:grid;gap:16px;flex:1}
+.modal-cols{display:grid;grid-template-columns:1fr 340px;gap:16px}
+@media(max-width:880px){.modal-cols{grid-template-columns:1fr}}
+.mapbox{border-radius:4px;overflow:hidden;border:1px solid var(--rule);background:var(--slab);height:220px}
+.mapbox iframe{width:100%;height:100%;border:0;filter:grayscale(.15) contrast(1.05)}
+.mapbox .noloc{height:100%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11.5px;color:var(--fg-faint);text-align:center;padding:20px}
+.factbox{background:var(--slab);border:1px solid var(--rule);border-radius:4px;padding:14px 16px;
+  display:grid;gap:9px;font-family:var(--mono);font-size:11.5px}
+.factbox .row{display:flex;justify-content:space-between;gap:10px;color:var(--fg-dim)}
+.factbox .row b{color:var(--fg);font-weight:500}
+
 .verdict{
-  display:grid;grid-template-columns:auto 1fr auto;gap:22px;align-items:center;
-  padding:18px 22px;margin-bottom:18px;
-  background:var(--slab);
-  border:1px solid var(--rule);
-  border-left:5px solid var(--ok);
-  border-radius:3px;
+  display:grid;grid-template-columns:auto 1fr auto;gap:18px;align-items:center;
+  padding:14px 18px;background:var(--slab);border:1px solid var(--rule);
+  border-left:5px solid var(--ok);border-radius:3px;
 }
 .verdict[data-s="WARNING"]{border-left-color:var(--warn)}
 .verdict[data-s="CRITICAL"]{border-left-color:var(--crit)}
 .verdict[data-s="OFFLINE"]{border-left-color:var(--stale)}
-.v-state{
-  font-family:var(--cond);font-weight:700;font-size:38px;line-height:.95;
-  letter-spacing:.01em;color:var(--ok);
-}
+.v-state{font-family:var(--cond);font-weight:700;font-size:30px;color:var(--ok)}
 .verdict[data-s="WARNING"] .v-state{color:var(--warn)}
 .verdict[data-s="CRITICAL"] .v-state{color:var(--crit)}
 .verdict[data-s="OFFLINE"] .v-state{color:var(--stale)}
-.v-note{color:var(--fg-dim);font-size:13.5px;max-width:62ch}
-.v-note strong{color:var(--fg);font-weight:600}
+.v-note{color:var(--fg-dim);font-size:13px;max-width:56ch}
+.score-n{font-family:var(--cond);font-weight:700;font-size:32px;text-align:right}
+.score-l{font-family:var(--mono);font-size:10px;color:var(--fg-faint);text-align:right}
 
-.score{text-align:right;flex:none}
-.score-n{font-family:var(--cond);font-weight:700;font-size:40px;line-height:.9}
-.score-l{font-family:var(--mono);font-size:10.5px;color:var(--fg-faint);letter-spacing:.06em}
-.score-bar{width:150px;height:3px;background:var(--rule);margin-top:7px;position:relative;overflow:hidden}
-.score-bar i{position:absolute;inset:0 auto 0 0;background:var(--ok);transition:width .5s cubic-bezier(.2,.7,.3,1),background .4s}
+.instruments{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule-soft);border-radius:3px;overflow:hidden}
+@media(max-width:620px){.instruments{grid-template-columns:1fr}}
+.inst{background:var(--slab);padding:14px 15px}
+.inst-l{font-family:var(--mono);font-size:10px;color:var(--fg-faint);letter-spacing:.05em;margin-bottom:8px}
+.inst-v{font-family:var(--cond);font-weight:700;font-size:28px;display:flex;align-items:baseline;gap:5px}
+.inst-v u{font-family:var(--sans);font-weight:500;font-size:12px;color:var(--fg-dim);text-decoration:none}
+.tilt-row{display:flex;align-items:center;gap:12px}
+.gauge .pole{transition:transform .4s cubic-bezier(.2,.7,.3,1);transform-origin:26px 52px}
+.spark{margin-top:9px;height:30px;width:100%;display:block}
 
-/* ---------- grid ---------- */
-.deck{display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start}
-@media(max-width:980px){.deck{grid-template-columns:1fr}}
-
-.slab{
-  background:var(--slab);border:1px solid var(--rule);border-radius:3px;
-  overflow:hidden;
-}
-.slab-hd{
-  display:flex;align-items:center;justify-content:space-between;gap:10px;
-  padding:11px 16px;border-bottom:1px solid var(--rule-soft);
-  background:var(--slab-2);
-}
-.slab-hd h2{
-  font-family:var(--cond);font-weight:600;font-size:17px;letter-spacing:.02em;
-}
-.slab-hd .meta{font-family:var(--mono);font-size:10.5px;color:var(--fg-faint)}
-.slab-bd{padding:16px}
-
-/* ---------- instruments ---------- */
-.instruments{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule-soft)}
-@media(max-width:700px){.instruments{grid-template-columns:1fr}}
-.inst{background:var(--slab);padding:15px 16px 14px}
-.inst-l{
-  font-family:var(--mono);font-size:10.5px;color:var(--fg-faint);
-  letter-spacing:.05em;margin-bottom:9px;
-}
-.inst-v{
-  font-family:var(--cond);font-weight:700;font-size:33px;line-height:1;
-  display:flex;align-items:baseline;gap:5px;
-}
-.inst-v u{font-family:var(--sans);font-weight:500;font-size:13px;color:var(--fg-dim);text-decoration:none}
-.inst-sub{font-size:11.5px;color:var(--fg-faint);margin-top:7px;font-family:var(--mono)}
-
-/* tilt gauge */
-.tilt-row{display:flex;align-items:center;gap:14px}
-.gauge{flex:none}
-.gauge .pole{transition:transform .45s cubic-bezier(.2,.7,.3,1);transform-origin:26px 52px}
-
-/* spark */
-.spark{margin-top:11px;height:34px;width:100%;display:block}
-
-/* ---------- threat matrix ---------- */
-.matrix{display:flex;flex-direction:column}
-.thr{
-  display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:center;
-  padding:12px 16px;border-bottom:1px solid var(--rule-soft);
-}
+.matrix{background:var(--slab);border:1px solid var(--rule);border-radius:3px;overflow:hidden}
+.thr{display:grid;grid-template-columns:8px 1fr auto;gap:12px;align-items:center;padding:11px 15px;border-bottom:1px solid var(--rule-soft)}
 .thr:last-child{border-bottom:0}
-.thr .pip{width:8px;height:8px;border-radius:50%;background:var(--rule);transition:background .3s}
-.thr-n{font-size:13.5px;font-weight:500}
-.thr-d{font-size:11.5px;color:var(--fg-faint);margin-top:2px;line-height:1.35}
-.thr-t{
-  font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
-  padding:3px 8px;border:1px solid var(--rule);border-radius:2px;
-  color:var(--fg-faint);white-space:nowrap;
-}
-.thr.hot .pip{background:var(--crit)}
-.thr.hot .thr-t{background:rgba(229,72,77,.13);border-color:rgba(229,72,77,.5);color:#ff8b8f}
-.thr.hot .thr-n{color:#ff8b8f}
-.thr.warm .pip{background:var(--warn)}
-.thr.warm .thr-t{background:rgba(232,163,61,.13);border-color:rgba(232,163,61,.5);color:var(--warn)}
-.thr.warm .thr-n{color:var(--warn)}
+.thr .pip{width:8px;height:8px;border-radius:50%;background:var(--rule)}
+.thr-n{font-size:13px;font-weight:500}
+.thr-t{font-family:var(--mono);font-size:10px;letter-spacing:.05em;padding:3px 8px;border:1px solid var(--rule);border-radius:2px;color:var(--fg-faint)}
+.thr.hot .pip{background:var(--crit)} .thr.hot .thr-t{background:rgba(229,72,77,.13);border-color:rgba(229,72,77,.5);color:#ff8b8f} .thr.hot .thr-n{color:#ff8b8f}
+.thr.warm .pip{background:var(--warn)} .thr.warm .thr-t{background:rgba(232,163,61,.13);border-color:rgba(232,163,61,.5);color:var(--warn)} .thr.warm .thr-n{color:var(--warn)}
 
-.ack{
-  width:100%;margin-top:2px;
-  font-family:var(--mono);font-size:11px;letter-spacing:.05em;
-  background:transparent;color:var(--fg-dim);
-  border:1px solid var(--rule);border-radius:2px;
-  padding:9px;cursor:pointer;transition:border-color .2s,color .2s;
+.modal-actions{display:flex;gap:10px;flex-wrap:wrap}
+.btn{
+  font-family:var(--mono);font-size:11.5px;letter-spacing:.04em;
+  padding:11px 16px;border-radius:2px;cursor:pointer;text-decoration:none;
+  display:inline-flex;align-items:center;gap:8px;border:1px solid var(--rule);
+  background:transparent;color:var(--fg-dim);transition:border-color .2s,color .2s,background .2s;
 }
-.ack:hover:not(:disabled),.ack:focus-visible{border-color:var(--sodium);color:var(--sodium)}
-.ack:disabled{opacity:.35;cursor:default}
-:focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
-
-.dispatch-btn{
-  display:none;background:var(--crit);color:white;padding:9px;
-  text-decoration:none;font-weight:bold;margin-top:10px;text-align:center;
-  border-radius:2px;font-family:var(--mono);font-size:11px;
-  letter-spacing:.05em;width:100%;box-sizing:border-box;
-}
-.dispatch-btn:hover{background:#ff5c61}
-
-/* ---------- log ---------- */
-.log{max-height:240px;overflow-y:auto;font-family:var(--mono);font-size:11.5px}
-.log-row{
-  display:grid;grid-template-columns:62px 1fr;gap:12px;
-  padding:7px 16px;border-bottom:1px solid var(--rule-soft);
-}
-.log-row:last-child{border-bottom:0}
-.log-t{color:var(--fg-faint)}
-.log-m{color:var(--fg-dim)}
-.log-row.c .log-m{color:#ff8b8f}
-.log-row.w .log-m{color:var(--warn)}
-.log-row.g .log-m{color:var(--ok)}
-.log-row.s .log-m{color:var(--stale)}
-
-/* ---------- footer strip ---------- */
-.strip{
-  margin-top:18px;padding:11px 16px;
-  background:var(--slab);border:1px solid var(--rule);border-radius:3px;
-  font-family:var(--mono);font-size:11px;color:var(--fg-faint);
-  overflow-x:auto;white-space:nowrap;
-}
-.strip b{color:var(--fg-dim);font-weight:500}
-
-.facts{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule-soft)}
-.fact{background:var(--slab);padding:11px 16px}
-.fact dt{font-family:var(--mono);font-size:10px;color:var(--fg-faint);letter-spacing:.05em;margin-bottom:3px}
-.fact dd{font-size:13px;font-weight:500}
+.btn:hover,.btn:focus-visible{border-color:var(--sodium);color:var(--sodium)}
+.btn.primary{background:var(--sodium);color:#1a1206;border-color:var(--sodium);font-weight:600}
+.btn.primary:hover{background:#ffc363;color:#1a1206}
+.btn:disabled{opacity:.35;cursor:default}
 </style>
 </head>
 <body>
 <div class="wrap">
 
   <header class="masthead">
-    <div class="ident">
-      <div class="mark">POLE<b>SENTINEL</b></div>
-      <div class="asset">
-        <span><em>SL-001</em> · Guindy, Chennai · installed 12 Aug 2026</span>
-        <button id="syncLocationBtn" class="sync-btn" onclick="syncDemoLocation()">📍 Sync Demo Location</button>
-      </div>
+    <div class="mark">POLE<b>SENTINEL</b><span>fleet view</span></div>
+    <div class="fleet-stats" id="fleetStats">
+      <span class="stat"><i></i><span id="stTotal">0</span> nodes</span>
+      <span class="stat crit"><i></i><span id="stCrit">0</span> critical</span>
+      <span class="stat warn"><i></i><span id="stWarn">0</span> warning</span>
+      <span class="stat ok"><i></i><span id="stOk">0</span> healthy</span>
     </div>
-    <div class="link-state" id="link"><span class="beacon"></span><span id="linkTxt">waiting for first packet</span></div>
   </header>
 
-  <section class="verdict" id="verdict" data-s="HEALTHY">
-    <div class="v-state" id="vState">HEALTHY</div>
-    <p class="v-note" id="vNote">All mechanical and electrical readings sit within the baseline captured at installation.</p>
-    <div class="score">
-      <div class="score-n" id="scoreN">100</div>
-      <div class="score-l">health index</div>
-      <div class="score-bar"><i id="scoreBar" style="width:100%"></i></div>
-    </div>
-  </section>
-
-  <div class="deck">
-    <main style="display:grid;gap:18px">
-
-      <section class="slab">
-        <div class="slab-hd">
-          <h2>Live telemetry</h2>
-          <span class="meta" id="instMeta">no data</span>
-        </div>
-        <div class="instruments">
-          <div class="inst">
-            <div class="inst-l">STRUCTURAL TILT</div>
-            <div class="tilt-row">
-              <svg class="gauge" width="52" height="60" viewBox="0 0 52 60" aria-hidden="true">
-                <line x1="6" y1="52" x2="46" y2="52" stroke="var(--rule)" stroke-width="1.5"/>
-                <line x1="26" y1="52" x2="26" y2="8" stroke="var(--rule-soft)" stroke-width="1.5" stroke-dasharray="3 3"/>
-                <g class="pole" id="poleG">
-                  <line x1="26" y1="52" x2="26" y2="10" stroke="var(--sodium)" stroke-width="2.5" stroke-linecap="round"/>
-                  <circle cx="26" cy="9" r="3.4" fill="var(--sodium)"/>
-                </g>
-              </svg>
-              <div>
-                <div class="inst-v"><span id="vTilt">—</span><u>deg</u></div>
-                <div class="inst-sub" id="tiltSub">from installed vertical</div>
-              </div>
-            </div>
-          </div>
-          <div class="inst">
-            <div class="inst-l">ACCELERATION VECTOR</div>
-            <div class="inst-v"><span id="vAccel">—</span><u>mg</u></div>
-            <div class="inst-sub" id="accelSub">6-axis IMU magnitude</div>
-            <svg class="spark" id="sparkA" viewBox="0 0 220 34" preserveAspectRatio="none" aria-hidden="true"></svg>
-          </div>
-          <div class="inst">
-            <div class="inst-l">LOAD CURRENT DEVIATION</div>
-            <div class="inst-v"><span id="vDelta">—</span><u>ADC</u></div>
-            <div class="inst-sub" id="deltaSub">drift from calibrated load</div>
-            <svg class="spark" id="sparkD" viewBox="0 0 220 34" preserveAspectRatio="none" aria-hidden="true"></svg>
-          </div>
-        </div>
-      </section>
-
-      <section class="slab">
-        <div class="slab-hd">
-          <h2>Event log</h2>
-          <span class="meta">state transitions only</span>
-        </div>
-        <div class="log" id="log">
-          <div class="log-row"><span class="log-t">—</span><span class="log-m">Listening for telemetry from the gateway.</span></div>
-        </div>
-      </section>
-
-    </main>
-
-    <aside style="display:grid;gap:18px">
-
-      <section class="slab">
-        <div class="slab-hd"><h2>Threat matrix</h2><span class="meta">latched at edge</span></div>
-        <div class="matrix" id="matrix">
-          <div class="thr" data-k="crash">
-            <span class="pip"></span>
-            <div><div class="thr-n">Vehicle impact</div><div class="thr-d">Acceleration spike with sub-second recovery</div></div>
-            <span class="thr-t">clear</span>
-          </div>
-          <div class="thr" data-k="position">
-            <span class="pip"></span>
-            <div><div class="thr-n">Pole displaced</div><div class="thr-d">Orientation shifted past 8° and held</div></div>
-            <span class="thr-t">clear</span>
-          </div>
-          <div class="thr" data-k="elec">
-            <span class="pip"></span>
-            <div><div class="thr-n">Luminaire fault</div><div class="thr-d">Load current left its calibrated band</div></div>
-            <span class="thr-t">clear</span>
-          </div>
-          <div class="thr" data-k="tilt">
-            <span class="pip"></span>
-            <div><div class="thr-n">Progressive lean</div><div class="thr-d">Sustained 4°+ deviation, no impact event</div></div>
-            <span class="thr-t">stable</span>
-          </div>
-          <div class="thr" data-k="vib">
-            <span class="pip"></span>
-            <div><div class="thr-n">Sustained vibration</div><div class="thr-d">Broadband energy above the quiet baseline</div></div>
-            <span class="thr-t">clear</span>
-          </div>
-        </div>
-        <div class="slab-bd" style="padding:12px 16px 14px;border-top:1px solid var(--rule-soft)">
-          <button class="ack" id="ackBtn" disabled>acknowledge &amp; clear latches</button>
-          <a id="dispatchBtn" class="dispatch-btn" href="#" target="_blank">🚨 DISPATCH CREW (OPEN MAPS)</a>
-        </div>
-      </section>
-
-      <section class="slab">
-        <div class="slab-hd"><h2>Node</h2><span class="meta">gateway-reported</span></div>
-        <dl class="facts">
-          <div class="fact"><dt>LINK</dt><dd>LoRa 433 MHz</dd></div>
-          <div class="fact"><dt>UPLINK</dt><dd>Wi-Fi → Firebase</dd></div>
-          <div class="fact"><dt>PACKET AGE</dt><dd id="fAge">—</dd></div>
-          <div class="fact"><dt>PACKETS SEEN</dt><dd id="fCount">0</dd></div>
-          <div class="fact"><dt>LINK UPTIME</dt><dd id="fUp">—</dd></div>
-          <div class="fact"><dt>GAPS</dt><dd id="fGaps">0</dd></div>
-        </dl>
-      </section>
-
-    </aside>
+  <div class="toolbar">
+    <span class="toolbar-l">sorted by severity, most urgent first</span>
+    <span class="toolbar-r" id="lastPoll">—</span>
   </div>
 
-  <div class="strip" id="strip"><b>RX</b> awaiting first payload from gateway…</div>
+  <div class="grid" id="grid">
+    <div class="empty">Connecting to fleet…</div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal">
+    <div class="modal-hd">
+      <div>
+        <h2 id="modalTitle">SL-001</h2>
+        <div class="sub" id="modalSub">—</div>
+      </div>
+      <button class="x" id="closeBtn" aria-label="Close">✕</button>
+    </div>
+    <div class="modal-body">
+
+      <div class="verdict" id="mVerdict" data-s="HEALTHY">
+        <div class="v-state" id="mState">HEALTHY</div>
+        <p class="v-note" id="mNote">All readings within baseline.</p>
+        <div>
+          <div class="score-n" id="mScore">100</div>
+          <div class="score-l">health index</div>
+        </div>
+      </div>
+
+      <div class="modal-cols">
+        <div style="display:grid;gap:16px">
+          <div class="instruments">
+            <div class="inst">
+              <div class="inst-l">STRUCTURAL TILT</div>
+              <div class="tilt-row">
+                <svg class="gauge" width="48" height="56" viewBox="0 0 52 60" aria-hidden="true">
+                  <line x1="6" y1="52" x2="46" y2="52" stroke="var(--rule)" stroke-width="1.5"/>
+                  <line x1="26" y1="52" x2="26" y2="8" stroke="var(--rule-soft)" stroke-width="1.5" stroke-dasharray="3 3"/>
+                  <g class="pole" id="mPoleG">
+                    <line x1="26" y1="52" x2="26" y2="10" stroke="var(--sodium)" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="26" cy="9" r="3.4" fill="var(--sodium)"/>
+                  </g>
+                </svg>
+                <div>
+                  <div class="inst-v"><span id="mTilt">—</span><u>deg</u></div>
+                </div>
+              </div>
+            </div>
+            <div class="inst">
+              <div class="inst-l">ACCELERATION</div>
+              <div class="inst-v"><span id="mAccel">—</span><u>mg</u></div>
+              <svg class="spark" id="mSparkA" viewBox="0 0 220 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+            </div>
+            <div class="inst">
+              <div class="inst-l">CURRENT DEVIATION</div>
+              <div class="inst-v"><span id="mDelta">—</span><u>ADC</u></div>
+              <svg class="spark" id="mSparkD" viewBox="0 0 220 30" preserveAspectRatio="none" aria-hidden="true"></svg>
+            </div>
+          </div>
+
+          <div class="matrix" id="mMatrix">
+            <div class="thr" data-k="crash"><span class="pip"></span><div class="thr-n">Vehicle impact</div><span class="thr-t">clear</span></div>
+            <div class="thr" data-k="position"><span class="pip"></span><div class="thr-n">Pole displaced</div><span class="thr-t">clear</span></div>
+            <div class="thr" data-k="elec"><span class="pip"></span><div class="thr-n">Luminaire fault</div><span class="thr-t">clear</span></div>
+            <div class="thr" data-k="tilt"><span class="pip"></span><div class="thr-n">Progressive lean</div><span class="thr-t">stable</span></div>
+            <div class="thr" data-k="vib"><span class="pip"></span><div class="thr-n">Sustained vibration</div><span class="thr-t">clear</span></div>
+          </div>
+
+          <div class="modal-actions">
+            <!-- Dynamic button handled in JS to prevent reloading -->
+            <a class="btn primary" id="dispatchBtn" rel="noopener">📍 Dispatch crew</a>
+            <button class="btn" id="ackModalBtn">acknowledge &amp; clear latches</button>
+          </div>
+        </div>
+
+        <div style="display:grid;gap:16px;align-content:start">
+          <div class="mapbox" id="mapbox"><div class="noloc">no GPS reported by this node</div></div>
+          <div class="factbox">
+            <div class="row"><span>Pole ID</span><b id="fPoleId">—</b></div>
+            <div class="row"><span>Coordinates</span><b id="coordTxt">—</b></div>
+            <div class="row"><span>Link</span><b>LoRa 433 MHz</b></div>
+            <div class="row"><span>Uplink</span><b>Wi-Fi → Firebase</b></div>
+            <div class="row"><span>Packet age</span><b id="fAge">—</b></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
 </div>
 
 <script>
-const URL_DB = "https://polesentinel-default-rtdb.firebaseio.com/poles/SL-001.json";
-const POLL_MS   = 1000;   // 1 Hz is plenty: the node transmits at 1 Hz
-const STALE_MS  = 6000;   // 6 missed transmissions → node presumed down
-const HIST_N    = 60;
+// UPDATE WITH YOUR FIREBASE URL
+const ROOT_URL   = "https://polesentinel-default-rtdb.firebaseio.com/poles.json";
+const POLL_MS    = 1000;
+const STALE_MS   = 6000;
+const HIST_N     = 40;
 
-// Default coordinates aligned closely to Chennai Institute of Technology
-let poleLat = 12.9675; 
-let poleLng = 80.0488;
-
-const S = {
-  lastPayload:null, lastChangeAt:0, lastSeenAt:0,
-  count:0, gaps:0, firstAt:0,
-  stale:false, acked:{}, prev:{}, hist:{a:[],d:[]}
-};
+const fleet = {};
+let openId = null;
 
 const $ = id => document.getElementById(id);
 
-/* ---------- geolocation sync ---------- */
-function syncDemoLocation() {
-  if (navigator.geolocation) {
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        poleLat = position.coords.latitude;
-        poleLng = position.coords.longitude;
-        $('syncLocationBtn').innerText = "✅ Location Synced";
-        logLine(`Demo location locked to current coordinates: ${poleLat.toFixed(4)}, ${poleLng.toFixed(4)}`, 'g');
-      },
-      (error) => {
-        alert("Please allow location access in your browser to sync the demo.");
-      }
-    );
-  } else {
-    alert("Geolocation is not supported by this browser.");
-  }
-}
-
-/* ---------- helpers ---------- */
 function stamp(){
   const d=new Date();
   return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0')+':'+String(d.getSeconds()).padStart(2,'0');
 }
-function logLine(msg,cls){
-  const box=$('log');
-  if(box.dataset.seeded!=='1'){box.innerHTML='';box.dataset.seeded='1';}
-  const r=document.createElement('div');
-  r.className='log-row'+(cls?' '+cls:'');
-  r.innerHTML='<span class="log-t"></span><span class="log-m"></span>';
-  r.children[0].textContent=stamp();
-  r.children[1].textContent=msg;
-  box.prepend(r);
-  while(box.children.length>40) box.lastChild.remove();
+
+function parsePayload(raw){
+  const p = raw.split(',');
+  if(p.length<10) return null;
+  const [poleId,status,accel,tilt,delta,crash,position,tiltWarn,elec,vib,lat,lng] = p;
+  return {
+    poleId, status,
+    accel: parseFloat(accel)||0,
+    tilt: parseFloat(tilt)||0,
+    delta: parseFloat(delta)||0,
+    crash: crash==='1', position: position==='1',
+    tiltWarn: tiltWarn==='1', elec: elec==='1', vib: vib==='1',
+    lat: lat!==undefined ? parseFloat(lat) : null,
+    lng: lng!==undefined ? parseFloat(lng) : null
+  };
 }
-function dur(ms){
-  const s=Math.floor(ms/1000);
-  if(s<60) return s+'s';
-  const m=Math.floor(s/60);
-  if(m<60) return m+'m '+(s%60)+'s';
-  return Math.floor(m/60)+'h '+(m%60)+'m';
+
+function healthIndex(f){
+  let s=100;
+  if(f.crash) s-=45; if(f.position) s-=40;
+  if(f.elec) s-=20; if(f.tiltWarn) s-=15; if(f.vib) s-=10;
+  return Math.max(0,s);
+}
+
+function severityOf(rec){
+  if(rec.stale) return 3;
+  const f=rec.fields;
+  if(f.crash || f.position) return 0;
+  if(f.elec || f.tiltWarn || f.vib) return 1;
+  return 2;
+}
+function severityKey(rec){
+  const s = severityOf(rec);
+  return s===3 ? 1.5 : s;
+}
+
+async function pollFleet(){
+  try{
+    const r = await fetch(ROOT_URL,{cache:'no-store'});
+    if(!r.ok) throw 0;
+    const data = await r.json();
+    if(!data) { renderGrid(); return; }
+
+    const now = Date.now();
+    Object.keys(data).forEach(id=>{
+      const entry = data[id];
+      if(!entry || !entry.payload) return;
+      const fields = parsePayload(entry.payload);
+      if(!fields) return;
+
+      if(!fleet[id]){
+        fleet[id] = { fields, lastSeenAt:now, hist:{a:[],d:[]}, acked:{}, prev:{} };
+      }
+      const rec = fleet[id];
+      rec.fields = fields;
+      rec.lastSeenAt = now;
+      rec.hist.a.push(fields.accel); if(rec.hist.a.length>HIST_N) rec.hist.a.shift();
+      rec.hist.d.push(fields.delta); if(rec.hist.d.length>HIST_N) rec.hist.d.shift();
+    });
+
+    $('lastPoll').textContent = 'last sync '+stamp();
+    tickStale();
+    renderGrid();
+    if(openId) renderModal(openId);
+  }catch(e){ }
+}
+
+function tickStale(){
+  const now=Date.now();
+  Object.values(fleet).forEach(rec=>{ rec.stale = (now-rec.lastSeenAt) > STALE_MS; });
+}
+
+function sparkPoints(arr,color){
+  if(arr.length<2) return '';
+  const min=Math.min(...arr), max=Math.max(...arr), span=(max-min)||1;
+  const pts=arr.map((v,i)=>{
+    const x=(i/(arr.length-1))*220, y=32-((v-min)/span)*28;
+    return x.toFixed(1)+','+y.toFixed(1);
+  }).join(' ');
+  return `<polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity=".8"/>`;
 }
 function spark(el,arr,color){
   if(arr.length<2){el.innerHTML='';return;}
   const min=Math.min(...arr), max=Math.max(...arr), span=(max-min)||1;
   const pts=arr.map((v,i)=>{
-    const x=(i/(arr.length-1))*220;
-    const y=32-((v-min)/span)*29;
+    const x=(i/(arr.length-1))*220, y=28-((v-min)/span)*25;
     return x.toFixed(1)+','+y.toFixed(1);
   }).join(' ');
   el.innerHTML='<polyline points="'+pts+'" fill="none" stroke="'+color+'" stroke-width="1.5" stroke-linejoin="round" vector-effect="non-scaling-stroke" opacity=".85"/>';
 }
 
-/* ---------- staleness: the safety-critical bit ---------- */
-function checkStale(){
-  if(!S.lastSeenAt) return;
-  const age = Date.now()-S.lastSeenAt;
-  $('fAge').textContent = (age/1000).toFixed(1)+'s';
-  if(S.firstAt) $('fUp').textContent = dur(Date.now()-S.firstAt);
+function renderGrid(){
+  const ids = Object.keys(fleet);
+  const grid = $('grid');
 
-  const nowStale = age > STALE_MS;
-  if(nowStale && !S.stale){
-    S.stale=true; S.gaps++; $('fGaps').textContent=S.gaps;
-    logLine('Telemetry lost — no packet for '+(STALE_MS/1000)+'s. Node presumed offline.','s');
-    renderOffline();
-  } else if(!nowStale && S.stale){
-    S.stale=false;
-    logLine('Telemetry restored.','g');
+  if(ids.length===0){
+    grid.innerHTML = '<div class="empty">No poles reporting yet. Waiting on /poles from Firebase…</div>';
+    updateStatsBar([]);
+    return;
   }
+
+  const sorted = ids.slice().sort((a,b)=>{
+    const ra=fleet[a], rb=fleet[b];
+    const sk = severityKey(ra)-severityKey(rb);
+    if(sk!==0) return sk;
+    return healthIndex(ra.fields)-healthIndex(rb.fields);
+  });
+
+  updateStatsBar(sorted.map(id=>fleet[id]));
+
+  grid.innerHTML='';
+  sorted.forEach(id=>{
+    const rec=fleet[id], f=rec.fields;
+    const sev = rec.stale?'offline':(severityOf(rec)===0?'crit':severityOf(rec)===1?'warn':'ok');
+    const badgeText = rec.stale?'OFFLINE':(sev==='crit'?'CRITICAL':sev==='warn'?'WARNING':'HEALTHY');
+
+    const card=document.createElement('button');
+    card.className='card sev-'+sev;
+    card.setAttribute('aria-haspopup','dialog');
+
+    const flags=[];
+    if(f.crash) flags.push(['Impact','on-crit']);
+    if(f.position) flags.push(['Displaced','on-crit']);
+    if(f.elec) flags.push(['Elec fault','on-warn']);
+    if(f.tiltWarn) flags.push(['Leaning','on-warn']);
+    if(f.vib) flags.push(['Vibration','on-warn']);
+
+    const score = rec.stale ? 0 : healthIndex(f);
+    const ringColor = sev==='crit'?'var(--crit)':sev==='warn'?'var(--warn)':sev==='offline'?'var(--stale)':'var(--ok)';
+    const CIRC = 2*Math.PI*21;
+    const dashOff = CIRC - (Math.max(score,rec.stale?100:0)/100)*CIRC;
+    const mapLink = (f.lat!=null && f.lng!=null && !isNaN(f.lat) && !isNaN(f.lng))
+      ? `<a href="https://www.google.com/maps?q=${f.lat},${f.lng}" target="_blank" rel="noopener" onclick="event.stopPropagation()">${f.lat.toFixed(4)}, ${f.lng.toFixed(4)} ↗</a>`
+      : 'no GPS';
+
+    card.innerHTML = `
+      <div class="card-glow"></div>
+      <div class="card-inner">
+        <div class="card-top">
+          <div class="card-id"><span class="livedot ${rec.stale?'dead':''}"></span>${f.poleId}</div>
+          <div class="ring-wrap">
+            <svg width="52" height="52" viewBox="0 0 52 52">
+              <circle class="ring-bg" cx="26" cy="26" r="21"/>
+              <circle class="ring-fg" cx="26" cy="26" r="21" stroke="${ringColor}"
+                stroke-dasharray="${CIRC}" stroke-dashoffset="${rec.stale?CIRC:dashOff}"/>
+            </svg>
+            <div class="ring-num">${rec.stale?'—':score}</div>
+          </div>
+        </div>
+        <div class="card-loc">${mapLink}</div>
+        <span class="card-badge" style="align-self:flex-start">${badgeText}</span>
+        <div class="card-mini">
+          <div class="mini"><div class="mini-l">TILT</div><div class="mini-v">${f.tilt.toFixed(1)}°</div></div>
+          <div class="mini"><div class="mini-l">ACCEL</div><div class="mini-v">${Math.round(f.accel/1000)}k</div></div>
+        </div>
+        <svg class="card-spark" viewBox="0 0 220 34" preserveAspectRatio="none" aria-hidden="true">${sparkPoints(rec.hist.a,ringColor)}</svg>
+        <div class="card-flags">${flags.length? flags.map(fl=>`<span class="flagchip ${fl[1]}">${fl[0]}</span>`).join('') : '<span class="flagchip">nominal</span>'}</div>
+        <div class="card-foot"><span>${rec.stale?'no packet '+Math.round((Date.now()-rec.lastSeenAt)/1000)+'s':'live · 1 Hz'}</span><span>view details ›</span></div>
+      </div>
+    `;
+    card.addEventListener('click',()=>openModal(id));
+    grid.appendChild(card);
+  });
 }
 
-function renderOffline(){
-  const link=$('link');
-  link.className='link-state lost';
-  $('linkTxt').textContent='link lost';
-  const v=$('verdict');
-  v.dataset.s='OFFLINE';
-  $('vState').textContent='OFFLINE';$('vNote').innerHTML='<strong>No telemetry.</strong> Readings below are the last known values and are no longer live. A dead node is not a healthy node — dispatch a check.';
-  $('scoreN').textContent='—';
-  $('scoreBar').style.width='0\%';$('dispatchBtn').style.display='none';
+function updateStatsBar(recs){
+  let crit=0,warn=0,ok=0;
+  recs.forEach(rec=>{
+    const s=severityOf(rec);
+    if(rec.stale) return;
+    if(s===0) crit++; else if(s===1) warn++; else ok++;
+  });
+  $('stTotal').textContent=recs.length;
+  $('stCrit').textContent=crit;
+  $('stWarn').textContent=warn;
+  $('stOk').textContent=ok;
 }
 
-/* ---------- health index ---------- */
-function healthIndex(f){
-  let s=100;
-  if(f.crash)    s-=45;
-  if(f.position) s-=40;
-  if(f.elec)     s-=20;
-  if(f.tilt)     s-=15;
-  if(f.vib)      s-=10;
-  return Math.max(0,s);
+function openModal(id){
+  openId=id;
+  $('overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  renderModal(id);
+}
+function closeModal(){
+  openId=null;
+  $('overlay').classList.remove('open');
+  document.body.style.overflow='';
 }
 
-/* ---------- render ---------- */
-function render(raw){
-  const p = raw.split(',');
-  if(p.length<10) return;
+function renderModal(id){
+  const rec = fleet[id];
+  if(!rec) return closeModal();
+  const f = rec.fields;
+  const acked = rec.acked;
 
-  const [poleId,status,accel,tilt,delta,crash,position,tiltWarn,elec,vib] = p;
-  const f = {
-    crash:    crash==='1'    && !S.acked.crash,
-    position: position==='1' && !S.acked.position,
-    elec:     elec==='1',
-    tilt:     tiltWarn==='1',
-    vib:      vib==='1'
+  // FIX: Align the variable name with the threat matrix dataset
+  const eff = {
+    crash: f.crash && !acked.crash,
+    position: f.position && !acked.position,
+    elec: f.elec, tilt: f.tiltWarn, vib: f.vib
   };
 
-  /* link */
-  const link=$('link'); link.className='link-state live';$('linkTxt').textContent='live · 1 Hz';
+  $('modalTitle').textContent = f.poleId;
+  $('modalSub').textContent = rec.stale
+    ? 'no packet for '+Math.round((Date.now()-rec.lastSeenAt)/1000)+'s'
+    : 'live · updated '+stamp();
 
-  /* instruments */
-  const tiltN=parseFloat(tilt)||0;
-  $('vTilt').textContent  = tiltN.toFixed(2);$('vAccel').textContent = Math.round(parseFloat(accel)||0).toLocaleString();
-  const dN=parseFloat(delta)||0;
-  $('vDelta').textContent = (dN>0?'+':'')+dN.toFixed(1);
-  $('poleG').style.transform='rotate('+Math.max(-30,Math.min(30,tiltN))+'deg)';$('tiltSub').textContent = tiltN<4 ? 'within installed tolerance'
-                           : tiltN<8 ? 'past the 4° monitoring line'
-                                     : 'past the 8° displacement line';
-  $('instMeta').textContent='updated '+stamp();
-
-  S.hist.a.push(parseFloat(accel)||0); if(S.hist.a.length>HIST_N) S.hist.a.shift();
-  S.hist.d.push(dN);                   if(S.hist.d.length>HIST_N) S.hist.d.shift();
-  spark($('sparkA'),S.hist.a,'#ffb340');
-  spark($('sparkD'),S.hist.d,'#3fb27f');
-  $('accelSub').textContent = S.hist.a.length+' samples retained';$('deltaSub').textContent = Math.abs(dN)<2.5 ? 'inside the calibrated band' : 'outside the calibrated band';
-
-  /* matrix */
-  const copy={
-    crash:['impact','clear'], position:['displaced','clear'],
-    elec:['fault','clear'],   tilt:['leaning','stable'],
-    vib:['severe','clear']
+  const state = rec.stale ? 'OFFLINE' : (eff.crash||eff.position) ? 'CRITICAL' : (eff.elec||eff.tilt||eff.vib) ? 'WARNING' : 'HEALTHY';
+  const notes = {
+    OFFLINE:'No telemetry. Last known values shown below are not live.',
+    CRITICAL: eff.crash ? 'Impact signature detected — acceleration spiked and recovered within the impact window.' : 'Pole orientation has shifted past 8° and held. Treat as a structural risk.',
+    WARNING: eff.elec ? 'Luminaire drawing abnormal current; mechanically the pole is sound.' : eff.tilt ? 'Sustained lean without an impact — schedule inspection.' : 'Vibration above baseline.',
+    HEALTHY:'All mechanical and electrical readings sit within the calibrated baseline.'
   };
+  $('mVerdict').dataset.s = state;
+  $('mState').textContent = state;
+  $('mNote').textContent = notes[state];$('mScore').textContent = rec.stale ? '—' : healthIndex(f);
+
+  $('mTilt').textContent = f.tilt.toFixed(2);$('mAccel').textContent = Math.round(f.accel).toLocaleString();
+  $('mDelta').textContent = (f.delta>0?'+':'')+f.delta.toFixed(1);$('mPoleG').style.transform = 'rotate('+Math.max(-30,Math.min(30,f.tilt))+'deg)';
+  spark($('mSparkA'), rec.hist.a, '#ffb340');
+  spark($('mSparkD'), rec.hist.d, '#3fb27f');
+
+  const copy = { crash:['impact','clear'], position:['displaced','clear'], elec:['fault','clear'], tilt:['leaning','stable'], vib:['severe','clear'] };
   const critKeys={crash:1,position:1,elec:1};
   let anyLatched=false;
-  document.querySelectorAll('.thr').forEach(el=>{
-    const k=el.dataset.k, on=f[k];
+  
+  document.querySelectorAll('#mMatrix .thr').forEach(el=>{
+    const k=el.dataset.k, on=eff[k];
     el.className='thr'+(on?(critKeys[k]?' hot':' warm'):'');
     el.querySelector('.thr-t').textContent = on?copy[k][0]:copy[k][1];
     if(on && (k==='crash'||k==='position')) anyLatched=true;
-    if(on!==S.prev[k] && S.prev[k]!==undefined){
-      logLine(el.querySelector('.thr-n').textContent+(on?' — triggered':' — returned to normal'),
-              on?(critKeys[k]?'c':'w'):'g');
-    }
-    S.prev[k]=on;
   });
-  $('ackBtn').disabled=!anyLatched;
+  $('ackModalBtn').disabled = !anyLatched;
 
-  /* verdict */
-  const score=healthIndex(f);
-  let state='HEALTHY', note='All mechanical and electrical readings sit within the baseline captured at installation.';
-  if(f.crash||f.position){
-    state='CRITICAL';
-    note=f.crash
-      ? '<strong>Impact signature detected.</strong> Acceleration spiked and recovered inside the impact window. Send a crew before dark.'
-      : '<strong>Pole has moved.</strong> Orientation is past 8° from its installed position and has stayed there. Treat as a structural risk.';
-  } else if(f.elec||f.tilt||f.vib){
-    state='WARNING';
-    note=f.elec ? '<strong>Luminaire drawing abnormal current.</strong> Mechanically sound, so this points at the lamp or its wiring, not the pole.'
-        : f.tilt ? '<strong>Sustained lean without an impact.</strong> Consistent with foundation movement — schedule an inspection rather than a callout.'
-                 : '<strong>Vibration above baseline.</strong> Worth watching; often traffic loading or a loose fixture.';
-  }
-  const v=$('verdict');
-  v.dataset.s=state;
-  $('vState').textContent=state;
-  $('vNote').innerHTML=note;
-  $('scoreN').textContent=score;
-  const bar=$('scoreBar');
-  bar.style.width=score+'%';
-  bar.style.background = score>=80?'var(--ok)':score>=50?'var(--warn)':'var(--crit)';
-  
-  /* Update Dispatch UI */
+  $('fPoleId').textContent = f.poleId;
+  $('fAge').textContent = rec.stale ? Math.round((Date.now()-rec.lastSeenAt)/1000)+'s ago' : 'live';
+
   const dispatchBtn = $('dispatchBtn');
-  if(state === 'CRITICAL'){
-    dispatchBtn.style.display = 'block';
-    dispatchBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${poleLat},${poleLng}`;
+  const hasGps = f.lat!=null && f.lng!=null && !isNaN(f.lat) && !isNaN(f.lng);
+  const mapbox = $('mapbox');
+  
+  if(hasGps){
+    const url = `https://www.google.com/maps?q=${f.lat},${f.lng}`;
+    dispatchBtn.href = url;
+    dispatchBtn.setAttribute('target', '_blank');
+    dispatchBtn.removeAttribute('aria-disabled');
+    dispatchBtn.onclick = null;
+    $('coordTxt').textContent = f.lat.toFixed(5)+', '+f.lng.toFixed(5);
+    mapbox.innerHTML = `<iframe loading="lazy" referrerpolicy="no-referrer-when-downgrade"
+      src="https://www.google.com/maps?q=${f.lat},${f.lng}&z=16&output=embed"></iframe>`;
   } else {
-    dispatchBtn.style.display = 'none';
+    dispatchBtn.removeAttribute('href');
+    dispatchBtn.removeAttribute('target');
+    dispatchBtn.setAttribute('aria-disabled','true');
+    dispatchBtn.onclick = (e)=>{ e.preventDefault(); alert('This node has not transmitted GPS coordinates yet.'); };
+    $('coordTxt').textContent = 'no GPS reported by this node';
+    mapbox.innerHTML = '<div class="noloc">no GPS reported by this node</div>';
   }
-
-  $('strip').innerHTML='<b>RX '+stamp()+'</b> &nbsp;·&nbsp; '+raw.replace(/</g,'&lt;');
 }
 
-/* ---------- poll ---------- */
-async function poll(){
-  try{
-    const r=await fetch(URL_DB,{cache:'no-store'});
-    if(!r.ok) throw 0;
-    const d=await r.json();
-    if(d && d.payload){
-      const now=Date.now();
-      if(!S.firstAt) S.firstAt=now;
-      S.lastSeenAt=now;
-      if(d.payload!==S.lastPayload){ S.lastPayload=d.payload; }
-      S.count++; $('fCount').textContent=S.count.toLocaleString();
-      if(S.stale){ S.stale=false; logLine('Telemetry restored.','g'); }
-      render(d.payload);
-    }
-  }catch(e){ /* staleness watchdog handles it */ }
-}
-
-$('ackBtn').addEventListener('click',()=>{
-  S.acked.crash=true; S.acked.position=true;
-  logLine('Latched alarms acknowledged by operator.','g');
-  $('ackBtn').disabled=true;
-  if(S.lastPayload) render(S.lastPayload);
+$('ackModalBtn').addEventListener('click',()=>{
+  if(!openId) return;
+  const rec = fleet[openId];
+  rec.acked.crash = true; rec.acked.position = true;
+  renderModal(openId);
+  renderGrid();
 });
+$('closeBtn').addEventListener('click', closeModal);$('overlay').addEventListener('click', e=>{ if(e.target.id==='overlay') closeModal(); });
+document.addEventListener('keydown', e=>{ if(e.key==='Escape' && openId) closeModal(); });
 
-setInterval(poll,POLL_MS);
-setInterval(checkStale,500);
-poll();
-
-/* demo fallback so the panel is legible before the node is powered */
 setTimeout(()=>{
-  if(S.count===0){
-    logLine('No gateway reachable — showing a synthetic packet so the layout is readable.','s');
-    let t=0;
-    setInterval(()=>{
-      if(S.count>0) return;
-      t++;
-      const tilt=(0.6+Math.sin(t/9)*0.35).toFixed(2);
-      const acc=Math.round(16380+Math.sin(t/4)*40+Math.random()*25);
-      const del=(Math.sin(t/7)*1.2+Math.random()*0.5).toFixed(1);
-      S.lastSeenAt=Date.now();
-      if(!S.firstAt) S.firstAt=Date.now();
-      render(['SL-001','HEALTHY',acc,tilt,del,'0','0','0','0','0'].join(','));
-    },1000);
-  }
-},4000);
+  if(Object.keys(fleet).length>0) return;
+  const demo = {
+    'SL-001': {lat:12.9675, lng:80.0488, fault:'none'},
+    'SL-002': {lat:12.9701, lng:80.0452, fault:'elec'},
+    'SL-003': {lat:12.9638, lng:80.0511, fault:'crash'},
+    'SL-004': {lat:12.9612, lng:80.0439, fault:'lean'},
+    'SL-005': {lat:12.9720, lng:80.0501, fault:'none'}
+  };
+  let t=0;
+  setInterval(()=>{
+    t++;
+    Object.keys(demo).forEach(id=>{
+      const d=demo[id];
+      const tilt=(0.6+Math.sin(t/9)*0.3).toFixed(2);
+      const accel=Math.round(16380+Math.sin(t/4)*40+Math.random()*20);
+      const delta=(Math.sin(t/6)*0.8).toFixed(1);
+      const crash = d.fault==='crash' ? '1':'0';
+      const elec  = d.fault==='elec' ? '1':'0';
+      const lean  = d.fault==='lean' ? '1':'0';
+      const raw=[id,'HEALTHY',accel,tilt,delta,crash,'0',lean,elec,'0',d.lat,d.lng].join(',');
+      const fields=parsePayload(raw);
+      if(!fleet[id]) fleet[id]={fields,lastSeenAt:Date.now(),hist:{a:[],d:[]},acked:{},prev:{}};
+      fleet[id].fields=fields; fleet[id].lastSeenAt=Date.now();
+      fleet[id].hist.a.push(fields.accel); if(fleet[id].hist.a.length>HIST_N) fleet[id].hist.a.shift();
+      fleet[id].hist.d.push(fields.delta); if(fleet[id].hist.d.length>HIST_N) fleet[id].hist.d.shift();
+    });
+    tickStale(); renderGrid(); if(openId) renderModal(openId);
+    $('lastPoll').textContent='demo data · '+stamp();
+  },1000);
+},3500);
+
+setInterval(pollFleet, POLL_MS);
+setInterval(tickStale, 500);
+pollFleet();
 </script>
 </body>
 </html>
