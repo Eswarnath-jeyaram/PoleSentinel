@@ -4,7 +4,7 @@
 #include <LoRa.h>
 
 // ============================================================
-//         POLESENTINEL GATEWAY (WIFI & FIREBASE)
+//         POLESENTINEL GATEWAY (WIFI & FIREBASE)
 // ============================================================
 
 // --- LoRa Pins ---
@@ -17,76 +17,98 @@ const char* ssid = "YOUR_WIFI_HOTSPOT_NAME";
 const char* password = "YOUR_WIFI_PASSWORD";
 
 // --- Firebase Configuration ---
-// Paste your copied URL here, and ADD "/poles/SL-001.json" to the very end.
-// Example: "https://polesentinel-1234-default-rtdb.firebaseio.com/poles/SL-001.json"
-const char* firebaseURL = "YOUR_FIREBASE_URL_HERE/poles/SL-001.json";
+// Paste your database root URL here (no trailing slash, no /poles/... suffix).
+// Example: "https://polesentinel-1234-default-rtdb.firebaseio.com"
+const char* firebaseRoot = "YOUR_FIREBASE_URL_HERE";
 
 void setup() {
-  Serial.begin(115200);
-  while (!Serial);
+  Serial.begin(115200);
+  while (!Serial);
 
-  Serial.println("\n======================================");
-  Serial.println("  POLESENTINEL CLOUD GATEWAY READY    ");
-  Serial.println("======================================");
+  Serial.println("\n======================================");
+  Serial.println("  POLESENTINEL CLOUD GATEWAY READY    ");
+  Serial.println("======================================");
 
-  // 1. Connect to Wi-Fi
-  Serial.print("Connecting to Wi-Fi: ");
-  Serial.println(ssid);
-  WiFi.begin(ssid, password);
-  
-  while (WiFi.status() != WL_CONNECTED) {
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\n✅ Wi-Fi Connected!");
-  Serial.print("IP Address: ");
-  Serial.println(WiFi.localIP());
+  // 1. Connect to Wi-Fi
+  Serial.print("Connecting to Wi-Fi: ");
+  Serial.println(ssid);
+  WiFi.begin(ssid, password);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\n✅ Wi-Fi Connected!");
+  Serial.print("IP Address: ");
+  Serial.println(WiFi.localIP());
 
-  // 2. Initialize LoRa
-  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
-  if (!LoRa.begin(433E6)) {
-    Serial.println("❌ LoRa Init Failed.");
-    while (1);
-  }
-  Serial.println("✅ LoRa Ready! Listening for edge nodes...\n");
+  // 2. Initialize LoRa
+  LoRa.setPins(LORA_SS, LORA_RST, LORA_DIO0);
+  if (!LoRa.begin(433E6)) {
+    Serial.println("❌ LoRa Init Failed.");
+    while (1);
+  }
+  Serial.println("✅ LoRa Ready! Listening for edge nodes...\n");
 }
 
 void loop() {
-  // Check if a LoRa packet has arrived
-  int packetSize = LoRa.parsePacket();
-  if (packetSize) {
-    
-    String incomingPayload = "";
-    while (LoRa.available()) {
-      incomingPayload += (char)LoRa.read();
-    }
-    
-    Serial.print("📡 Received: ");
-    Serial.println(incomingPayload);
+  // Check if a LoRa packet has arrived
+  int packetSize = LoRa.parsePacket();
+  if (packetSize) {
+    
+    String incomingPayload = "";
+    while (LoRa.available()) {
+      incomingPayload += (char)LoRa.read();
+    }
+    
+    Serial.print("📡 Received: ");
+    Serial.println(incomingPayload);
 
-    // Only upload if it's a valid PoleSentinel packet and Wi-Fi is connected
-    if (incomingPayload.startsWith("SL-") && WiFi.status() == WL_CONNECTED) {
-      
-      HTTPClient http;
-      http.begin(firebaseURL);
-      http.addHeader("Content-Type", "application/json");
+    // Only upload if it's a valid PoleSentinel packet and Wi-Fi is connected
+    if (incomingPayload.startsWith("SL-") && WiFi.status() == WL_CONNECTED) {
 
-      // Package the raw string into a simple JSON format
-      // Looks like: {"payload": "SL-001,HEALTHY,16500..."}
-      String jsonPayload = "{\"payload\": \"" + incomingPayload + "\"}";
+      // --- Extract the pole ID (text before the first comma) ---
+      // so this gateway can serve MULTIPLE poles, not just one hardcoded ID.
+      int firstComma = incomingPayload.indexOf(',');
+      if (firstComma == -1) {
+        Serial.println("⚠️ Malformed packet (no comma found), skipping.");
+        return;
+      }
+      String poleId = incomingPayload.substring(0, firstComma);
 
-      // Use HTTP PUT to overwrite the existing data for this pole
-      int httpResponseCode = http.PUT(jsonPayload);
+      // Basic sanity check on the extracted ID before using it in a URL
+      if (poleId.length() == 0 || poleId.length() > 20) {
+        Serial.println("⚠️ Suspicious pole ID, skipping upload.");
+        return;
+      }
 
-      if (httpResponseCode > 0) {
-        Serial.print("☁️ Firebase Updated. Code: ");
-        Serial.println(httpResponseCode);
-      } else {
-        Serial.print("❌ Firebase Error: ");
-        Serial.println(httpResponseCode);
-      }
-      
-      http.end();
-    }
-  }
+      String targetURL = String(firebaseRoot) + "/poles/" + poleId + ".json";
+
+      HTTPClient http;
+      http.begin(targetURL);
+      http.addHeader("Content-Type", "application/json");
+      http.setTimeout(800); // don't let a slow PUT block the LoRa receive loop
+
+      // Package the raw string into a simple JSON format
+      // Looks like: {"payload": "SL-001,HEALTHY,16500..."}
+      String jsonPayload = "{\"payload\": \"" + incomingPayload + "\"}";
+
+      // Use HTTP PUT to overwrite the existing data for THIS specific pole
+      int httpResponseCode = http.PUT(jsonPayload);
+
+      if (httpResponseCode > 0) {
+        Serial.print("☁️ Firebase Updated [" );
+        Serial.print(poleId);
+        Serial.print("]. Code: ");
+        Serial.println(httpResponseCode);
+      } else {
+        Serial.print("❌ Firebase Error: ");
+        Serial.println(httpResponseCode);
+      }
+      
+      http.end();
+    }
+  }
 }
+
+This is updated claude gave gateway code check will this match the transmitter code
