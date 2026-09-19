@@ -55,8 +55,15 @@ body{
 .asset{
   font-family:var(--mono);font-size:12px;color:var(--fg-dim);
   border-left:1px solid var(--rule);padding-left:14px;
+  display:flex;align-items:center;gap:10px;
 }
 .asset em{font-style:normal;color:var(--fg)}
+.sync-btn{
+  background:transparent;color:var(--sodium);border:1px solid var(--sodium);
+  border-radius:3px;padding:2px 6px;cursor:pointer;font-family:var(--mono);
+  font-size:10px;transition:background 0.2s,color 0.2s;
+}
+.sync-btn:hover{background:var(--sodium);color:var(--ink)}
 
 .link-state{
   display:flex;align-items:center;gap:9px;
@@ -175,6 +182,14 @@ body{
 .ack:disabled{opacity:.35;cursor:default}
 :focus-visible{outline:2px solid var(--sodium);outline-offset:2px}
 
+.dispatch-btn{
+  display:none;background:var(--crit);color:white;padding:9px;
+  text-decoration:none;font-weight:bold;margin-top:10px;text-align:center;
+  border-radius:2px;font-family:var(--mono);font-size:11px;
+  letter-spacing:.05em;width:100%;box-sizing:border-box;
+}
+.dispatch-btn:hover{background:#ff5c61}
+
 /* ---------- log ---------- */
 .log{max-height:240px;overflow-y:auto;font-family:var(--mono);font-size:11.5px}
 .log-row{
@@ -210,7 +225,10 @@ body{
   <header class="masthead">
     <div class="ident">
       <div class="mark">POLE<b>SENTINEL</b></div>
-      <div class="asset"><em>SL-001</em> · Guindy, Chennai · installed 12 Aug 2026</div>
+      <div class="asset">
+        <span><em>SL-001</em> · Guindy, Chennai · installed 12 Aug 2026</span>
+        <button id="syncLocationBtn" class="sync-btn" onclick="syncDemoLocation()">📍 Sync Demo Location</button>
+      </div>
     </div>
     <div class="link-state" id="link"><span class="beacon"></span><span id="linkTxt">waiting for first packet</span></div>
   </header>
@@ -311,6 +329,7 @@ body{
         </div>
         <div class="slab-bd" style="padding:12px 16px 14px;border-top:1px solid var(--rule-soft)">
           <button class="ack" id="ackBtn" disabled>acknowledge &amp; clear latches</button>
+          <a id="dispatchBtn" class="dispatch-btn" href="#" target="_blank">🚨 DISPATCH CREW (OPEN MAPS)</a>
         </div>
       </section>
 
@@ -338,6 +357,10 @@ const POLL_MS   = 1000;   // 1 Hz is plenty: the node transmits at 1 Hz
 const STALE_MS  = 6000;   // 6 missed transmissions → node presumed down
 const HIST_N    = 60;
 
+// Default coordinates aligned closely to Chennai Institute of Technology
+let poleLat = 12.9675; 
+let poleLng = 80.0488;
+
 const S = {
   lastPayload:null, lastChangeAt:0, lastSeenAt:0,
   count:0, gaps:0, firstAt:0,
@@ -345,6 +368,25 @@ const S = {
 };
 
 const $ = id => document.getElementById(id);
+
+/* ---------- geolocation sync ---------- */
+function syncDemoLocation() {
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        poleLat = position.coords.latitude;
+        poleLng = position.coords.longitude;
+        $('syncLocationBtn').innerText = "✅ Location Synced";
+        logLine(`Demo location locked to current coordinates: ${poleLat.toFixed(4)}, ${poleLng.toFixed(4)}`, 'g');
+      },
+      (error) => {
+        alert("Please allow location access in your browser to sync the demo.");
+      }
+    );
+  } else {
+    alert("Geolocation is not supported by this browser.");
+  }
+}
 
 /* ---------- helpers ---------- */
 function stamp(){
@@ -404,10 +446,9 @@ function renderOffline(){
   $('linkTxt').textContent='link lost';
   const v=$('verdict');
   v.dataset.s='OFFLINE';
-  $('vState').textContent='OFFLINE';
-  $('vNote').innerHTML='<strong>No telemetry.</strong> Readings below are the last known values and are no longer live. A dead node is not a healthy node — dispatch a check.';
+  $('vState').textContent='OFFLINE';$('vNote').innerHTML='<strong>No telemetry.</strong> Readings below are the last known values and are no longer live. A dead node is not a healthy node — dispatch a check.';
   $('scoreN').textContent='—';
-  $('scoreBar').style.width='0%';
+  $('scoreBar').style.width='0\%';$('dispatchBtn').style.display='none';
 }
 
 /* ---------- health index ---------- */
@@ -436,17 +477,14 @@ function render(raw){
   };
 
   /* link */
-  const link=$('link'); link.className='link-state live';
-  $('linkTxt').textContent='live · 1 Hz';
+  const link=$('link'); link.className='link-state live';$('linkTxt').textContent='live · 1 Hz';
 
   /* instruments */
   const tiltN=parseFloat(tilt)||0;
-  $('vTilt').textContent  = tiltN.toFixed(2);
-  $('vAccel').textContent = Math.round(parseFloat(accel)||0).toLocaleString();
+  $('vTilt').textContent  = tiltN.toFixed(2);$('vAccel').textContent = Math.round(parseFloat(accel)||0).toLocaleString();
   const dN=parseFloat(delta)||0;
   $('vDelta').textContent = (dN>0?'+':'')+dN.toFixed(1);
-  $('poleG').style.transform='rotate('+Math.max(-30,Math.min(30,tiltN))+'deg)';
-  $('tiltSub').textContent = tiltN<4 ? 'within installed tolerance'
+  $('poleG').style.transform='rotate('+Math.max(-30,Math.min(30,tiltN))+'deg)';$('tiltSub').textContent = tiltN<4 ? 'within installed tolerance'
                            : tiltN<8 ? 'past the 4° monitoring line'
                                      : 'past the 8° displacement line';
   $('instMeta').textContent='updated '+stamp();
@@ -455,8 +493,7 @@ function render(raw){
   S.hist.d.push(dN);                   if(S.hist.d.length>HIST_N) S.hist.d.shift();
   spark($('sparkA'),S.hist.a,'#ffb340');
   spark($('sparkD'),S.hist.d,'#3fb27f');
-  $('accelSub').textContent = S.hist.a.length+' samples retained';
-  $('deltaSub').textContent = Math.abs(dN)<2.5 ? 'inside the calibrated band' : 'outside the calibrated band';
+  $('accelSub').textContent = S.hist.a.length+' samples retained';$('deltaSub').textContent = Math.abs(dN)<2.5 ? 'inside the calibrated band' : 'outside the calibrated band';
 
   /* matrix */
   const copy={
@@ -501,6 +538,15 @@ function render(raw){
   const bar=$('scoreBar');
   bar.style.width=score+'%';
   bar.style.background = score>=80?'var(--ok)':score>=50?'var(--warn)':'var(--crit)';
+  
+  /* Update Dispatch UI */
+  const dispatchBtn = $('dispatchBtn');
+  if(state === 'CRITICAL'){
+    dispatchBtn.style.display = 'block';
+    dispatchBtn.href = `https://www.google.com/maps/dir/?api=1&destination=${poleLat},${poleLng}`;
+  } else {
+    dispatchBtn.style.display = 'none';
+  }
 
   $('strip').innerHTML='<b>RX '+stamp()+'</b> &nbsp;·&nbsp; '+raw.replace(/</g,'&lt;');
 }
