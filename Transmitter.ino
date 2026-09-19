@@ -5,7 +5,7 @@
 #include <esp_task_wdt.h>
 
 // ============================================================
-//           POLESENTINEL TRANSMITTER (FINAL MASTER)
+//           POLESENTINEL TRANSMITTER (STABLE MASTER + GPS)
 // ============================================================
 
 // --- LoRa Pins ---
@@ -25,6 +25,10 @@
 
 #define SAMPLE_INTERVAL_MS 10
 #define TRANSMIT_INTERVAL_MS 1000  // 1s interval prevents Gateway network bottlenecks
+
+// --- Pole GPS (Fixed Installation Coordinates) ---
+#define POLE_LAT 12.9675
+#define POLE_LNG 80.0488
 
 // --- IMU Variables ---
 #define IMU_CALIBRATION_SAMPLES 200
@@ -258,6 +262,7 @@ void loop() {
     if (sensorFault || crashDetected || positionChanged || electricalFault) overallStatus = "CRITICAL";
     else if (severeVibration || tiltChanged) overallStatus = "WARNING";
 
+    // Build the payload with the GPS coordinates cleanly appended
     String payload = "SL-001,";
     payload += overallStatus + ",";
     payload += String(accelerationMagnitude, 0) + ",";
@@ -267,7 +272,9 @@ void loop() {
     payload += String(positionChanged ? 1 : 0) + ",";
     payload += String(tiltChanged ? 1 : 0) + ",";
     payload += String(electricalFault ? 1 : 0) + ",";
-    payload += String(severeVibration ? 1 : 0);
+    payload += String(severeVibration ? 1 : 0) + ",";
+    payload += String(POLE_LAT, 4) + ","; 
+    payload += String(POLE_LNG, 4);
 
     // Broadcast packet ASYNCHRONOUSLY to prevent loop blocking
     LoRa.beginPacket();
