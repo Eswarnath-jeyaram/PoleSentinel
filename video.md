@@ -1,2 +1,0 @@
-
-[View the Hardware Demo Video here](https://drive.google.com/file/d/1opsCNCuc7UlBkmN_oOMesT2Ywv_b3Xn7/view?usp=sharing)
